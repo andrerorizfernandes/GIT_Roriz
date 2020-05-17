@@ -1,0 +1,507 @@
+unit uFunc;
+
+interface
+
+uses
+  IniFiles, System.JSON, idHTTP, IdSSLOpenSSL, Data.DBXJSON, DBXJSONReflect, System.Classes,
+  Datasnap.DBClient, IdMessage, IdSMTP, IdText, IdAttachmentFile,
+  IdExplicitTLSClientServerBase, Vcl.ComCtrls;
+
+//procedures
+procedure JSONCep(Cep : String);
+procedure Erro(Mensagem : String);
+procedure Alerta(Mensagem: String);
+procedure Informacao(Mensagem: String);
+procedure CaracterValido(Tipo : integer; var key : Char);
+
+//Funções
+function Pergunta(Pergunta: String): Boolean;
+function ValidaCPF(numero : string) : boolean;
+function IsValidEmail(const Value: string): Boolean;
+function EnviarEmail(const AAssunto, ADestino, AAnexo: String; ACorpo: TStrings): Boolean;
+function DadoInvalido(Valor: String; Str: String; Sender: TObject; TabSheet: TTabSheet = nil): Boolean;
+function SalvarArquivoXML(Dados : TClientDataSet; IdenticadorTabela, IdentificadorRegistro, NomeArquivo : String) : String;
+
+implementation
+
+uses
+  System.SysUtils, XMLDoc, XMLIntf, Vcl.StdCtrls, Vcl.Dialogs, uDM, Vcl.Forms,
+  Winapi.Windows, Vcl.DBCtrls, Vcl.Graphics, System.TypInfo, uVar, Vcl.Mask;
+
+{*********************************************************************************************************************************
+Nome: Andre Roriz Fernandes
+Objetivo: Retornar diretamente para os campos de cadastro de cliente, os valores obtidos na API do VIACEP através do arquivo JSON
+Parâmetros Entrada: Cep com 8 dígitos numéricos
+Retorno: Não se aplica
+Data: 15/05/2020
+*********************************************************************************************************************************}
+procedure JSONCep(Cep : String);
+var
+  HTTP: TIdHTTP;
+  IDSSLHandler: TIdSSLIOHandlerSocketOpenSSL;
+  Response: TStringStream;
+  JsonArray: TJSONArray;
+  JS : TJSONObject;
+begin
+  //conectando a API do viacep
+  HTTP := TIdHTTP.Create;
+  IDSSLHandler := TIdSSLIOHandlerSocketOpenSSL.Create;
+  HTTP.IOHandler := IDSSLHandler;
+  Response := TStringStream.Create('');
+
+  HTTP.Get('http://viacep.com.br/ws/' + Cep + '/json', Response);
+  if (HTTP.ResponseCode = 200) and not (UTF8ToString(Response.DataString) = '{'#$A'  "erro": true'#$A'}') then
+    begin
+      //armazenando o retorno no arquivo JSON
+      JS := TJSONObject.ParseJSONValue(TEncoding.ASCII.GetBytes(UTF8ToString(Response.DataString)), 0) as TJSONObject;
+      //Lendo o arquivo JSON e alimentando os campos correspondentes no cadastro
+      DM.cdsClienteLogradouro.AsString  := JS.Get('logradouro').JsonValue.Value;
+      DM.cdsClienteCidade.AsString      := JS.Get('localidade').JsonValue.Value;
+      DM.cdsClienteBairro.AsString      := JS.Get('bairro').JsonValue.Value;
+      DM.cdsClienteEstado.AsString      := JS.Get('uf').JsonValue.Value;
+      DM.cdsClienteComplemento.AsString := JS.Get('complemento').JsonValue.Value;
+    end
+  else
+    raise Exception.Create('O cep informado não foi localizado');
+end;
+
+{*********************************************************************************************************************************
+Nome: Andre Roriz Fernandes
+Objetivo: Apresentar uma mensagem de erro personalizada
+Parâmetros Entrada: Mensagem a ser exibida
+Retorno: Não se aplica
+Data: 15/05/2020
+*********************************************************************************************************************************}
+procedure Erro(Mensagem : String);
+begin
+  Application.MessageBox(Pchar(Mensagem), PWideChar(NomeSistema), mb_Ok + MB_ICONERROR);
+end;
+
+{*********************************************************************************************************************************
+Nome: Andre Roriz Fernandes
+Objetivo: Apresentar uma mensagem de alerta personalizada
+Parâmetros Entrada: Mensagem a ser exibida
+Retorno: Não se aplica
+Data: 15/05/2020
+*********************************************************************************************************************************}
+procedure Alerta(Mensagem: String);
+begin
+  Application.MessageBox(PChar(Mensagem), PWideChar(NomeSistema), MB_ICONWARNING);
+end;
+
+{*********************************************************************************************************************************
+Nome: Andre Roriz Fernandes
+Objetivo: Apresentar uma mensagem de informação personalizada
+Parâmetros Entrada: Mensagem a ser exibida
+Retorno: Não se aplica
+Data: 15/05/2020
+*********************************************************************************************************************************}
+Procedure Informacao(Mensagem: String);
+begin
+  Application.MessageBox(PChar(Mensagem), PWideChar(NomeSistema), MB_ICONINFORMATION);
+end;
+
+{*********************************************************************************************************************************
+Nome: Andre Roriz Fernandes
+Objetivo: Limitar a digitação de caracteres conforme a regra especificada
+Parâmetros Entrada: Tipo de regra (especificada nas constantes da unit vars) e tecla apressionada
+Retorno: Não se aplica
+Data: 15/05/2020
+*********************************************************************************************************************************}
+procedure CaracterValido(Tipo : integer; var key : Char);
+var
+ Caracteres: TSysCharSet;
+begin
+  case Tipo of
+    1 : Caracteres:= ['0'..'9', #3, #8, #13, #22, #24, #27, #42]; //Somente Números
+    2 : Caracteres:= ['0'..'9']; //Letras e caracteres
+    3 : Caracteres:= ['a'..'z','A'..'Z']; //somente letras
+    4 : Caracteres:= ['a'..'z','A'..'Z','0'..'9', #3, #8, #13, #22, #24, #27]; //Letras e números
+    5 : Caracteres:= ['0'..'9',',',#8]; //Somente Números e Virgula
+  end;
+
+  if ((Tipo = 2) and CharInSet(key,Caracteres)) or
+     ((Tipo <> 2) and not CharInSet(key,Caracteres)) then
+  begin
+    //beep;
+    key:= #0;
+  end;
+end;
+
+{*********************************************************************************************************************************
+Nome: Andre Roriz Fernandes
+Objetivo: Realizar pergunta para condição de aceitação/negação do usuário
+Parâmetros Entrada: Texto da pergunta
+Retorno: Valor lógico
+Data: 15/05/2020
+*********************************************************************************************************************************}
+function Pergunta(Pergunta: String): Boolean;
+begin
+  if Application.MessageBox(PChar(Pergunta), PWideChar(NomeSistema), MB_ICONQUESTION + MB_YESNO + MB_DEFBUTTON2) = idYes then
+    Result:= true
+  else
+    Result:= false;
+end;
+
+{*********************************************************************************************************************************
+Nome: Andre Roriz Fernandes
+Objetivo: Verificar se o cpf informado é um número válido segundo a regra estrutural
+Parâmetros Entrada: Cpf
+Retorno: Valor lógico
+Data: 15/05/2020
+*********************************************************************************************************************************}
+function ValidaCPF(numero : string) : boolean;
+var
+  i : integer;
+  Want : char;
+  Wvalid : boolean;
+  Wdigit1,Wdigit2 : integer;
+begin
+  if numero.IsEmpty then
+  begin
+    result:= false;
+    exit;
+  end;
+  Wvalid:= False;
+  Wdigit1:= 0;
+  Wdigit2:= 0;
+  Want:= numero[1];//variavel para testar se o cpf é repetido como 111.111.111-11
+  Delete(numero,ansipos('.',numero),1); //retira as mascaras se houver
+  Delete(numero,ansipos('.',numero),1);
+  Delete(numero,ansipos('-',numero),1);
+
+  //testar se o cpf é repetido como 111.111.111-11
+  for i:=1 to length(numero) do
+  begin
+    if numero[i] <> Want then
+    begin
+      Wvalid:=true; // se o cpf possui um digito diferente ele passou no primeiro teste
+      break;
+    end;
+  end;
+  // se o cpf é composto por numeros repetido retorna falso
+  if not Wvalid then
+  begin
+    result:=false;
+    exit;
+  end;
+
+  //executa o calculo para o primeiro verificador
+  for i:=1 to 9 do
+  begin
+    wdigit1:=Wdigit1+(strtoint(numero[10-i])*(I+1));
+  end;
+  Wdigit1:= ((11 - (Wdigit1 mod 11))mod 11) mod 10;
+  {formula do primeiro verificador
+  soma=1°*2+2°*3+3°*4.. até 9°*10
+  digito1 = 11 - soma mod 11
+  se digito > 10 digito1 =0}
+
+  //verifica se o 1° digito confere
+  if IntToStr(Wdigit1) <> numero[10] then
+  begin
+    result:=false;
+    exit;
+  end;
+
+  for i:=1 to 10 do
+  begin
+    wdigit2:=Wdigit2+(strtoint(numero[11-i])*(I+1));
+  end;
+  Wdigit2:= ((11 - (Wdigit2 mod 11))mod 11) mod 10;
+  {formula do segundo verificador
+  soma=1°*2+2°*3+3°*4.. até 10°*11
+  digito1 = 11 - soma mod 11
+  se digito > 10 digito1 =0}
+
+  // confere o 2° digito verificador
+  if IntToStr(Wdigit2) <> numero[11] then
+  begin
+    result:=false;
+    exit;
+  end;
+
+  //se chegar até aqui o cpf é valido
+  result:=true;
+end;
+
+{*********************************************************************************************************************************
+Nome: Andre Roriz Fernandes
+Objetivo: Verificar se o e-mail informado é válido segundo a regra estrutural
+Parâmetros Entrada: Endereço de e-mail
+Retorno: Valor lógico
+Data: 15/05/2020
+*********************************************************************************************************************************}
+function IsValidEmail(const Value: string): Boolean;
+  function CheckAllowed(const s: string): Boolean;
+  var
+    i: Integer;
+  begin
+    Result := False;
+    for i := 1 to Length(s) do
+      if not(s[i] in ['a' .. 'z', 'A' .. 'Z', '0' .. '9', '_', '-', '.']) then
+        Exit;
+    Result := true;
+  end;
+  var
+    i: Integer;
+    NamePart, ServerPart: string;
+begin
+  Result := False;
+  i := Pos('@', Value);
+  if i = 0 then
+    Exit;
+
+  NamePart := Copy(Value, 1, i - 1);
+  ServerPart := Copy(Value, i + 1, Length(Value));
+  if (Length(NamePart) = 0) or ((Length(ServerPart) < 5)) then
+    Exit;
+
+  i := Pos('.', ServerPart);
+  if (i = 0) or (i > (Length(ServerPart) - 2)) then
+    Exit;
+  Result := CheckAllowed(NamePart) and CheckAllowed(ServerPart);
+end;
+
+{*********************************************************************************************************************************
+Nome: Andre Roriz Fernandes
+Objetivo: Enviar e-mail
+Parâmetros Entrada: Assunto, destinatário, caminho do anexo, conteúdo do e-mail
+Retorno: Valor lógico
+Data: 15/05/2020
+*********************************************************************************************************************************}
+function EnviarEmail(const AAssunto, ADestino, AAnexo: String; ACorpo: TStrings): Boolean;
+var
+  IniFile : TIniFile;
+  sFrom : String;
+  sHost : String;
+  iPort : Integer;
+  sUserName : String;
+  sPassword : String;
+
+  idMsg : TIdMessage;
+  IdText : TIdText;
+  idSMTP : TIdSMTP;
+  IdSSLIOHandlerSocket : TIdSSLIOHandlerSocketOpenSSL;
+begin
+  try
+    try
+      //Criação e leitura do arquivo INI com as configurações
+      IniFile := TIniFile.Create(ExtractFilePath(ParamStr(0)) + 'Config.ini');
+      sFrom := IniFile.ReadString('Email' , 'From', sFrom);
+      sHost := IniFile.ReadString('Email' , 'Host', sHost);
+      iPort := IniFile.ReadInteger('Email', 'Port', iPort);
+      sUserName := IniFile.ReadString('Email' , 'UserName' , sUserName);
+      sPassword := IniFile.ReadString('Email' , 'Password' , sPassword);
+
+      //Configura os parâmetros necessários para SSL
+      IdSSLIOHandlerSocket := TIdSSLIOHandlerSocketOpenSSL.Create(nil);
+      IdSSLIOHandlerSocket.SSLOptions.Method := sslvSSLv23;
+      IdSSLIOHandlerSocket.SSLOptions.Mode  := sslmClient;
+
+      //Variável referente a mensagem
+      idMsg := TIdMessage.Create(nil);
+      idMsg.CharSet := 'utf-8';
+      idMsg.Encoding := meMIME;
+      idMsg.From.Name := NomeSistema;
+      idMsg.From.Address := sFrom;
+      idMsg.Priority := mpNormal;
+      idMsg.Subject := AAssunto;
+
+      //Add Destinatário(s)
+      idMsg.Recipients.Add;
+      idMsg.Recipients.EMailAddresses := ADestino;
+
+      //Variável do texto
+      idText := TIdText.Create(idMsg.MessageParts);
+      idText.Body.Add(ACorpo.Text);
+      idText.ContentType := 'text/html; text/plain; charset=iso-8859-1';
+
+      //Preparando o Servidor
+      IdSMTP := TIdSMTP.Create(nil);
+      IdSMTP.IOHandler := IdSSLIOHandlerSocket;
+      IdSMTP.UseTLS := utUseImplicitTLS;
+      IdSMTP.AuthType := satDefault;
+      IdSMTP.Host := sHost;
+      IdSMTP.AuthType := satDefault;
+      IdSMTP.Port := iPort;
+      IdSMTP.Username := sUserName;
+      IdSMTP.Password := sPassword;
+
+      //Conecta e Autentica
+      IdSMTP.Connect;
+      IdSMTP.Authenticate;
+
+      if AAnexo <> EmptyStr then
+        if FileExists(AAnexo) then
+          TIdAttachmentFile.Create(idMsg.MessageParts, AAnexo);
+
+      //Se a conexão foi bem sucedida, envia a mensagem
+      if IdSMTP.Connected then
+      begin
+        try
+          IdSMTP.Send(idMsg);
+        except on E:Exception do
+          begin
+            Erro('Erro ao tentar enviar: ' + E.Message);
+          end;
+        end;
+      end;
+
+      //Depois de tudo pronto, desconecta do servidor SMTP
+      if IdSMTP.Connected then
+        IdSMTP.Disconnect;
+
+      Result := True;
+    finally
+      IniFile.Free;
+      UnLoadOpenSSLLibrary;
+      FreeAndNil(idMsg);
+      FreeAndNil(IdSSLIOHandlerSocket);
+      FreeAndNil(idSMTP);
+    end;
+  except on e:Exception do
+    begin
+      Result := False;
+    end;
+  end;
+end;
+
+{*********************************************************************************************************************************
+Nome: Andre Roriz Fernandes
+Objetivo: Verificar o preenchimento dos campos de cadastro
+Parâmetros Entrada: Campo texto a ser verificado, mensagem em caso de não preenchimento, objeto a ser verificado, aba (caso necessário)
+Retorno: Valor lógico
+Data: 15/05/2020
+*********************************************************************************************************************************}
+function DadoInvalido(Valor: String; Str: String; Sender: TObject; TabSheet: TTabSheet = nil): Boolean;
+begin
+  if Trim(Valor) = '' then
+  begin
+    Alerta(Str);
+
+    if TabSheet <> nil then
+      TabSheet.Show;
+
+    if Sender is TDBEdit then
+    with Sender as TDBEdit do
+    begin
+      SetFocus;
+      Color:= clSkyBlue;
+    end;
+
+    if Sender is TEdit then
+    with Sender as TEdit do
+    begin
+      SetFocus;
+      Color:= clSkyBlue;
+    end;
+
+    if Sender is TDBMemo then
+    with Sender as TDBMemo do
+    begin
+      SetFocus;
+      Color:= clSkyBlue;
+    end;
+
+    if Sender is TMemo then
+    with Sender as TMemo do
+    begin
+      SetFocus;
+      Color:= clSkyBlue;
+    end;
+
+    if Sender is TDBLookupComboBox then
+    with Sender as TDBLookupComboBox do
+    begin
+      SetFocus;
+      Color:= clSkyBlue;
+    end;
+
+    if Sender is TDBComboBox then
+    with Sender as TDBComboBox do
+    begin
+      SetFocus;
+      Color:= clSkyBlue;
+    end;
+
+    if Sender is TComboBox then
+    with Sender as TComboBox do
+    begin
+      SetFocus;
+      Color:= clSkyBlue;
+    end;
+
+    if Sender is TCheckBox then
+    with Sender as TCheckBox do
+    begin
+      SetFocus;
+      Color:= clSkyBlue;
+    end;
+
+    if Sender is TDBCheckBox then
+    with Sender as TDBCheckBox do
+    begin
+      SetFocus;
+      Color:= clSkyBlue;
+    end;
+
+    if Sender is TDateTimePicker then
+    with Sender as TDateTimePicker do
+    begin
+      SetFocus;
+      Color:= clSkyBlue;
+    end;
+
+    if Sender is TMaskEdit then
+    with Sender as TMaskEdit do
+    begin
+      SetFocus;
+      Color:= clSkyBlue;
+    end;
+
+    Result:= True;
+  end
+  else
+  begin
+    if (Sender <> nil) and (IsPublishedProp(Sender,'Color')) then
+    SetOrdProp(Sender, 'Color', clWindow);
+
+    result:= false;
+  end;
+end;
+
+{*********************************************************************************************************************************
+Nome: Andre Roriz Fernandes
+Objetivo: Salvar os dados de um clientdataset no formato XML
+Parâmetros Entrada:
+Retorno: Nome do arquivo
+Data: 15/05/2020
+*********************************************************************************************************************************}
+function SalvarArquivoXML(Dados : TClientDataSet; IdenticadorTabela, IdentificadorRegistro, NomeArquivo : String) : String;
+var
+  XMLArq: TXMLDocument;
+  NodoTab, NodoReg, NodoEnd : IXMLNode;
+  i: Integer;
+begin
+  XMLArq := TXMLDocument.Create(nil);
+
+  XMLArq.Active := True;
+  NodoTab := XMLArq.AddChild(IdenticadorTabela);
+
+  Dados.First;
+  while not(Dados.Eof) do
+  begin
+    NodoReg := NodoTab.AddChild(IdentificadorRegistro);
+    for i := 0 to Pred(Dados.Fields.Count) do
+      NodoReg.ChildValues[Dados.Fields[i].FieldName] := Dados.Fields[i].AsString;
+
+    Dados.Next;
+  end;
+
+  XMLArq.SaveToFile(ExtractFileDir(ParamStr(0)) + '\' + NomeArquivo);
+
+  Result := NomeArquivo;
+end;
+
+end.

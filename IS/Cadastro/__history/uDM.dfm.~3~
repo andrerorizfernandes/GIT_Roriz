@@ -1,0 +1,14 @@
+object DM: TDM
+  OldCreateOrder = False
+  Height = 318
+  Width = 448
+  object qryCliente: TFDQuery
+    Left = 40
+    Top = 24
+  end
+  object dsrCliente: TDataSource
+    DataSet = qryCliente
+    Left = 144
+    Top = 24
+  end
+end

@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2020/02/06 20:14:53.000.228,=C:\Users\Andre Roriz\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2020/05/15 10:34:44.000.299,=C:\Users\Andre Roriz\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2020/05/15 10:35:13.000.968,D:\Sistemas\Sistemas Desktop (Delphi)\InfroSistemas\Cadastro\uPrincipal.pas=C:\Users\Andre Roriz\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2020/05/15 10:35:13.000.968,D:\Sistemas\Sistemas Desktop (Delphi)\InfroSistemas\Cadastro\uPrincipal.dfm=C:\Users\Andre Roriz\Documents\Embarcadero\Studio\Projects\Unit1.dfm</Transaction>
+    <Transaction>2020/05/15 10:35:18.000.781,D:\Sistemas\Sistemas Desktop (Delphi)\InfroSistemas\Cadastro\InfoSistemas.dproj=C:\Users\Andre Roriz\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
+    <Transaction>2020/05/15 10:42:34.000.926,=D:\Sistemas\Sistemas Desktop (Delphi)\InfroSistemas\Cadastro\Unit1.pas</Transaction>
+    <Transaction>2020/05/15 10:42:48.000.462,D:\Sistemas\Sistemas Desktop (Delphi)\InfroSistemas\Cadastro\uCliente.pas=D:\Sistemas\Sistemas Desktop (Delphi)\InfroSistemas\Cadastro\Unit1.pas</Transaction>
+    <Transaction>2020/05/15 10:42:48.000.462,D:\Sistemas\Sistemas Desktop (Delphi)\InfroSistemas\Cadastro\uCliente.dfm=D:\Sistemas\Sistemas Desktop (Delphi)\InfroSistemas\Cadastro\Unit1.dfm</Transaction>
+    <Transaction>2020/05/15 10:56:15.000.976,=D:\Sistemas\Sistemas Desktop (Delphi)\InfroSistemas\Cadastro\Unit1.pas</Transaction>
+    <Transaction>2020/05/15 10:56:24.000.540,D:\Sistemas\Sistemas Desktop (Delphi)\InfroSistemas\Cadastro\uDM.pas=D:\Sistemas\Sistemas Desktop (Delphi)\InfroSistemas\Cadastro\Unit1.pas</Transaction>
+    <Transaction>2020/05/15 10:56:24.000.540,D:\Sistemas\Sistemas Desktop (Delphi)\InfroSistemas\Cadastro\uDM.dfm=D:\Sistemas\Sistemas Desktop (Delphi)\InfroSistemas\Cadastro\Unit1.dfm</Transaction>
+    <Transaction>2020/05/15 12:36:36.000.394,=D:\Sistemas\Sistemas Desktop (Delphi)\InfroSistemas\Cadastro\Unit1.pas</Transaction>
+    <Transaction>2020/05/15 12:36:44.000.615,D:\Sistemas\Sistemas Desktop (Delphi)\InfroSistemas\Cadastro\uFunc.pas=D:\Sistemas\Sistemas Desktop (Delphi)\InfroSistemas\Cadastro\Unit1.pas</Transaction>
+    <Transaction>2020/05/15 12:42:30.000.619,=D:\Sistemas\Sistemas Desktop (Delphi)\InfroSistemas\Cadastro\Unit1.pas</Transaction>
+    <Transaction>2020/05/15 12:42:46.000.074,D:\Sistemas\Sistemas Desktop (Delphi)\InfroSistemas\Cadastro\uVar.pas=D:\Sistemas\Sistemas Desktop (Delphi)\InfroSistemas\Cadastro\Unit1.pas</Transaction>
+    <Transaction>2020/05/16 13:59:55.000.407,=D:\Sistemas\Sistemas Desktop (Delphi)\InfroSistemas\Cadastro\Unit1.pas</Transaction>
+    <Transaction>2020/05/16 14:00:15.000.954,D:\Sistemas\Sistemas Desktop (Delphi)\InfroSistemas\Cadastro\uConfigEmail.pas=D:\Sistemas\Sistemas Desktop (Delphi)\InfroSistemas\Cadastro\Unit1.pas</Transaction>
+    <Transaction>2020/05/16 14:00:15.000.954,D:\Sistemas\Sistemas Desktop (Delphi)\InfroSistemas\Cadastro\uConfigEmail.dfm=D:\Sistemas\Sistemas Desktop (Delphi)\InfroSistemas\Cadastro\Unit1.dfm</Transaction>
+  </Transactions>
+</BorlandProject>

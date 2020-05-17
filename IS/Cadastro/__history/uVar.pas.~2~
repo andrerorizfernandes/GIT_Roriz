@@ -1,0 +1,17 @@
+unit uVar;
+
+interface
+
+const
+  //constantes de validar caracter
+  SomenteNumeros        = 1;
+  SomenteCaracteres     = 2;
+  SomenteLetras         = 3;
+  SomenteNumerosLetras  = 4;
+  SomenteNumerosVirgula = 5;
+  SomenteGabarito       = 6;
+  NomeSistema           = 'DataFinanc';
+
+implementation
+
+end.

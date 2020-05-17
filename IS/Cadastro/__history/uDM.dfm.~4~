@@ -1,0 +1,66 @@
+object DM: TDM
+  OldCreateOrder = False
+  Height = 318
+  Width = 448
+  object dsrCliente: TDataSource
+    Left = 48
+    Top = 32
+  end
+  object cdsCliente: TClientDataSet
+    Aggregates = <>
+    Params = <>
+    Left = 40
+    Top = 16
+    object cdsClienteNome: TStringField
+      FieldName = 'Nome'
+      Size = 60
+    end
+    object cdsClienteIdentidade: TStringField
+      FieldName = 'Identidade'
+    end
+    object cdsClienteCpf: TStringField
+      FieldName = 'Cpf'
+      Size = 11
+    end
+    object cdsClienteTelefone: TStringField
+      FieldName = 'Telefone'
+      Size = 11
+    end
+    object cdsClienteEmail: TStringField
+      FieldName = 'Email'
+      Size = 100
+    end
+    object cdsClienteCep: TStringField
+      FieldName = 'Cep'
+      Size = 8
+    end
+    object cdsClienteLogradouro: TStringField
+      FieldName = 'Logradouro'
+      Size = 100
+    end
+    object cdsClienteNumero: TStringField
+      FieldName = 'Numero'
+      Size = 10
+    end
+    object cdsClienteComplemento: TStringField
+      FieldName = 'Complemento'
+      Size = 60
+    end
+    object cdsClienteBairro: TStringField
+      FieldName = 'Bairro'
+      Size = 30
+    end
+    object cdsClienteCidade: TStringField
+      FieldName = 'Cidade'
+      Size = 50
+    end
+    object cdsClienteEstado: TStringField
+      FieldName = 'Estado'
+      Size = 2
+    end
+    object cdsClientePais: TStringField
+      FieldName = 'Pais'
+      Size = 30
+    end
+  end
+end

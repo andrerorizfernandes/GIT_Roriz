@@ -1,0 +1,76 @@
+object frmPrincipal: TfrmPrincipal
+  Left = 0
+  Top = 0
+  BorderIcons = [biSystemMenu, biMinimize]
+  Caption = 'InfoSistemas'
+  ClientHeight = 503
+  ClientWidth = 785
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  Menu = MainMenu1
+  OldCreateOrder = False
+  Position = poScreenCenter
+  WindowState = wsMaximized
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Image1: TImage
+    Left = 0
+    Top = 0
+    Width = 785
+    Height = 484
+    Align = alClient
+    ExplicitLeft = 248
+    ExplicitTop = 104
+    ExplicitWidth = 105
+    ExplicitHeight = 105
+  end
+  object StatusBar1: TStatusBar
+    Left = 0
+    Top = 484
+    Width = 785
+    Height = 19
+    Panels = <
+      item
+        Alignment = taCenter
+        Width = 100
+      end
+      item
+        Alignment = taCenter
+        Width = 100
+      end
+      item
+        Width = 50
+      end>
+  end
+  object MainMenu1: TMainMenu
+    Left = 448
+    Top = 64
+    object Cadastro1: TMenuItem
+      Caption = '&Cadastro'
+      object Cliente1: TMenuItem
+        Caption = 'C&lientes'
+        OnClick = Cliente1Click
+      end
+    end
+    object Configuraoes1: TMenuItem
+      Caption = 'Confi&gura'#231'oes'
+      object EnvioEmail1: TMenuItem
+        Caption = '&Envio E-mail'
+        OnClick = EnvioEmail1Click
+      end
+    end
+    object Sair1: TMenuItem
+      Caption = '&Sair'
+      OnClick = Sair1Click
+    end
+  end
+  object Timer1: TTimer
+    OnTimer = Timer1Timer
+    Left = 440
+    Top = 136
+  end
+end
