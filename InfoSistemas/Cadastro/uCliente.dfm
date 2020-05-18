@@ -229,6 +229,7 @@ object frmCliente: TfrmCliente
         DataField = 'Cep'
         DataSource = DM.dsrCliente
         TabOrder = 0
+        OnExit = dbeCepExit
         OnKeyPress = dbeCepKeyPress
       end
       object dbeLogradouro: TDBEdit

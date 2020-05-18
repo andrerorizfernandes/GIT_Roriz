@@ -50,6 +50,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure btnCancelarClick(Sender: TObject);
     procedure dbeCepKeyPress(Sender: TObject; var Key: Char);
+    procedure dbeCepExit(Sender: TObject);
   private
     var
       ArqXML : String;
@@ -77,7 +78,9 @@ begin
   end;
 
   //Consultando o CEP na api do VIACEP
+  Screen.Cursor := crHourGlass;
   JSONCep(dbeCep.Text);
+  Screen.Cursor := crDefault;
 end;
 
 procedure TfrmCliente.btnGravarClick(Sender: TObject);
@@ -139,7 +142,7 @@ begin
   if not(Pergunta('Deseja finalizar o cadastro?')) then
     Exit;
 
-  Screen.Cursor := crSQLWait;
+  Screen.Cursor := crHourGlass;
   //gravando os dados em memória
   try
     DM.cdsCliente.Post;
@@ -189,6 +192,12 @@ begin
   DM.cdsCliente.EmptyDataSet;
   DM.cdsCliente.Append;
   dbeNome.SetFocus;
+end;
+
+procedure TfrmCliente.dbeCepExit(Sender: TObject);
+begin
+  if Length(dbeCep.Field.Text) = 8 then
+    btnBuscaCepClick(Sender);
 end;
 
 procedure TfrmCliente.dbeCepKeyPress(Sender: TObject; var Key: Char);
